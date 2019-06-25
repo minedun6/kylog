@@ -1,0 +1,3 @@
+ ✔ Fixing the reception date displaying current date instead of null/empty values(fields). @done (17-05-04 13:43)
+ ☐ Adding clients/suppliers filters.
+ ☐ Append the products to a a js array then pass them as options

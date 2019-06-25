@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "scripts": {
+    "prod": "gulp --production",
+    "dev": "gulp watch"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-rename": "^1.2.2",
+    "laravel-elixir": "^6.0.0-14",
+    "laravel-elixir-vue-2": "^0.2.0",
+    "laravel-elixir-webpack-official": "^1.0.2",
+    "lodash": "^4.16.2",
+    "vue": "^2.0.1"
+  },
+  "dependencies": {
+    "axios": "^0.15.3",
+    "highcharts": "^5.0.10",
+    "moment": "^2.18.1",
+    "select2": "^4.0.3"
+  }
+}

@@ -1,0 +1,110 @@
+{{--<script>--}}
+    {{--$(document).ready(function () {--}}
+        {{--$('#showSupplier').on('show.bs.modal', function (e) {--}}
+            {{--$id = $(e.relatedTarget).attr('data-id');--}}
+            {{--$('#showSupplier').find('.modal-content').empty().load('/admin/supplier/' + $id, function (response) {--}} => this takes the html rendered from modal-details and append it to the .modal-content
+            {{--});--}}
+        {{--})--}}
+    {{--});--}}
+{{--</script>--}}
+
+// this is to dynamically load the modal with its informations
+
+// view('backend.suppliers.partials.modal-details', compact('supplier')) => this returns the modal and pass the supplier to it
+
+// return '<a class="btn btn-xs btn-info" data-toggle="modal" data-id="' . $supplier->id . '" data-target="#showSupplier"><i class="fa fa-search"></i></a>'; => this returns the button to trigger the modal
+
+// snippet to get reception report.
+
+<?php
+
+$productsPerReception = collect();
+foreach ($this->packages as $package) {
+    foreach ($package->packageItems as $item) {
+        $productsPerReception->push($item);
+    }
+}
+$total = 0;
+$subpackagesNumber = $productsPerReception->groupBy('id')->map(function ($groups) use ($total) {
+    return $groups->unique('id')->map(function ($product) use ($total, $groups) {
+        $product['subpackage_number'] = $groups->sum(function ($g) {
+            return $g->pivot->subpackages_number;
+        });
+        $product['package_qty'] = $groups->map(function ($g) {
+            return $g->pivot->qty;
+        })->count();
+        return $product;
+    });
+});
+return $subpackagesNumber->flatten();
+
+
+@role('Administrator')
+    <div class="row">
+         <div class="col-md-12 about-header" style="margin:0; margin-bottom: 10px;margin-left:15px;">
+            <!--<h1>About Us</h1>
+            <h2>Life is either a great adventure or nothing</h2>
+            <button type="button" class="btn btn-danger">JOIN US TODAY</button>-->
+            <div class="top-r-testi">
+            <p class="testimon">  ... L’émeraude est un minéral, du groupe des silicates, sous-groupe des cyclosilicates, variété de béryl,  </p>
+            </div>
+            <div class="top-l-testi">
+            <p class="testimon">  dont la couleur verte provient de traces de chrome, de vanadium et parfois de fer. L'émeraude est une des quatre pierres précieuses...</p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-7 col-xs-12 col-sm-12">
+            <!-- BEGIN PORTLET-->
+            <div class="portlet light bordered">
+                <div class="portlet-title tabbable-line">
+                    <div class="caption">
+                        <i class="icon-globe font-dark hide"></i>
+                        <span class="caption-subject font-dark bold uppercase">Activity Log</span>
+                    </div>
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="#tab_1_1" class="active" data-toggle="tab"> System </a>
+                        </li>
+                        <li>
+                            <a href="#tab_1_2" data-toggle="tab"> Activities </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="portlet-body">
+                    <!--BEGIN TABS-->
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="tab_1_1">
+                            <div class="scroller" style="height: 339px;" data-always-visible="1" data-rail-visible="0">
+                                <ul class="feeds">
+                                    <li>
+                                        <table class="table table-striped">
+                                            <thead>
+                                            <tr>
+                                                <td>Time</td>
+                                                <td>Description</td>
+                                                <td>User</td>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            @foreach($activities as $activity)
+                                                <tr>
+                                                    <td>
+                                                        <small>{{ $activity->created_at->format('d-m-Y H:i') }}</small>
+                                                    </td>
+                                                    <td></td>
+                                                    <td>{{ $activity->causer->name ?? '' }}</td>
+                                                </tr>
+                                            @endforeach
+                                            </tbody>
+                                        </table>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endauth

@@ -1,0 +1,104 @@
+<?php
+
+const MODEL = Client::class;
+
+    protected $company;
+
+    protected $user;
+
+    /**
+     * SupplierRepository constructor.
+     * @param CompanyRepository $company
+     * @param UserRepository $user
+     */
+    public function __construct(CompanyRepository $company, UserRepository $user)
+    {
+        $this->company = $company;
+        $this->user = $user;
+    }
+
+    /**
+     * @param null $company
+     * @return mixed
+     */
+    public function getForDataTable($company = null)
+    {
+
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWithCompany()
+    {
+        return $this->query()->with('company')->get();
+    }
+
+    /**
+     * @param $input
+     * @return mixed
+     */
+    public function create($input)
+    {
+        $data = $input['data'];
+        $client = $this->createClientStub($data);
+
+        return DB::transaction(function () use ($data, $client, $input) {
+            $company = $this->company->create($input);
+            if (parent::save($client)) {
+                $company->client()->save($client);
+                return $client;
+            }
+            throw new GeneralException(trans('exceptions.backend.access.users.create_error'));
+        });
+    }
+
+    /**
+     * @param Model $client
+     * @param array $input
+     * @return mixed
+     */
+    public function update(Model $client, array $input)
+    {
+        return DB::transaction(function () use ($client, $input) {
+            if (parent::save($client)) {
+                $client = $this->company->update($client->company, $input);
+                return $client;
+            }
+            throw new GeneralException(trans('exceptions.backend.access.users.update_error'));
+        });
+    }
+
+    /**
+     * @param Model $client
+     * @param $input
+     * @return mixed
+     */
+    public function createUser(Model $client, $input)
+    {
+        $input['data']['password'] = '1234';
+        $input['data']['status'] = 1;
+        $input['data']['confirmed'] = 1;
+        $input['data']['company_id'] = $client->company_id;
+        $input['roles']['assignees_roles'] = [3];
+
+        return DB::transaction(function () use ($input, $client) {
+            if (!is_null($client)) {
+                $user = $this->user->create($input);
+                return $client->company->users()->save($user);
+            }
+            throw new GeneralException(trans('exceptions.backend.access.users.create_error'));
+        });
+    }
+
+    /**
+     * @param $data
+     * @return mixed
+     */
+    protected function createClientStub($data)
+    {
+        $client = self::MODEL;
+        $client = new $client;
+
+        return $client;
+    }

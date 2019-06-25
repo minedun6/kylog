@@ -1,0 +1,110 @@
+<?php
+
+    const MODEL = Supplier::class;
+
+    protected $company;
+
+    protected $user;
+
+    /**
+     * SupplierRepository constructor.
+     * @param CompanyRepository $company
+     * @param UserRepository $user
+     */
+    public function __construct(CompanyRepository $company, UserRepository $user)
+    {
+        $this->company = $company;
+        $this->user = $user;
+    }
+
+    /**
+     * @param null $company
+     * @return mixed
+     */
+    public function getForDataTable($company = null)
+    {
+        $query = $this->query();
+        $query->leftJoin('companies', 'companies.id', '=', 'suppliers.company_id');
+        if (!is_null($company)) {
+            $query->leftJoin('users', 'users.company_id', '=', 'suppliers.id');
+        }
+        $query->select('suppliers.id', 'suppliers.company_id', 'companies.name', 'companies.trn', 'companies.customs', 'companies.address');
+        return $query;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWithCompany()
+    {
+        return $this->query()->with('company')->get();
+    }
+
+    /**
+     * @param $input
+     * @return mixed
+     */
+    public function create($input)
+    {
+        $data = $input['data'];
+        $supplier = $this->createSupplierStub($data);
+
+        return DB::transaction(function () use ($data, $supplier, $input) {
+            $company = $this->company->create($input);
+            if (parent::save($supplier)) {
+                $company->supplier()->save($supplier);
+                return $supplier;
+            }
+            throw new GeneralException(trans('exceptions.backend.access.users.create_error'));
+        });
+    }
+
+    /**
+     * @param Model $supplier
+     * @param array $input
+     * @return mixed
+     */
+    public function update(Model $supplier, array $input)
+    {
+        return DB::transaction(function () use ($supplier, $input) {
+            if (parent::save($supplier)) {
+                $supplier = $this->company->update($supplier->company, $input);
+                return $supplier;
+            }
+            throw new GeneralException(trans('exceptions.backend.access.users.update_error'));
+        });
+    }
+
+    /**
+     * @param Model $supplier
+     * @param $input
+     * @return mixed
+     */
+    public function createUser(Model $supplier, $input)
+    {
+        $input['data']['password'] = '1234';
+        $input['data']['status'] = 1;
+        $input['data']['confirmed'] = 1;
+        $input['data']['company_id'] = $supplier->company_id;
+        $input['roles']['assignees_roles'] = [3];
+
+        return DB::transaction(function () use ($input, $supplier) {
+            if (!is_null($supplier)) {
+                $user = $this->user->create($input);
+                return $supplier->company->users()->save($user);
+            }
+            throw new GeneralException(trans('exceptions.backend.access.users.create_error'));
+        });
+    }
+
+    /**
+     * @param $data
+     * @return mixed
+     */
+    protected function createSupplierStub($data)
+    {
+        $supplier = self::MODEL;
+        $supplier = new $supplier;
+
+        return $supplier;
+    }
