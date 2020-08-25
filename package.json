@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "axios": "^0.15.3",
-    "highcharts": "^5.0.10",
+    "highcharts": "^7.2.2",
     "moment": "^2.18.1",
     "select2": "^4.0.3"
   }
